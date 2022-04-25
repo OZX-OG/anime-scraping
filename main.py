@@ -1,10 +1,11 @@
 from bs4 import BeautifulSoup
 from lxml import etree
+from time import sleep
 import re
 import requests
 
 search = str(input("Enter the name of the anime: "))
-site = f"https://anime4up.art/?search_param=animes&s={search}"
+site = f"https://anime4up.art/?search_param=animes&s={search.strip()}"
 allsite = []
 newsites = []
 linkes = []
@@ -19,6 +20,7 @@ def get_episode(episode):
     dom = etree.HTML(str(soup))
     title = dom.xpath('/html/body/div[2]/div/h3')[0].text
     episode_number = ""
+    print(title)
     for i in title:
         if i.isdigit():
             episode_number += i
@@ -43,21 +45,42 @@ for i in allsite:
 
 
 ########## chache the links the anime you want ##########
-x = ""
+
+if len(newsites) == 0:
+    print("No anime found")
+    print("we will exit in 5s")
+    sleep(5)
+    exit()
+
 dic = {}
-for i in newsites:
-    success = 0
-    print(i[27:-1].replace("-", " "))
-    x = i[27:-1].replace("-", " ")
-    for indx, value in enumerate(search):
-        if value == x[indx]:
-            success += 1
+anime_names_list = []
+for indx, value in enumerate(newsites):
+    # print(value[27:-1].replace("-", " "))
+    x = value[27:-1].replace("-", " ")
+    anime_names_list.append(x)
+    dic.update({indx: value})
 
-    dic.update({i: success})
+anime_names_index = 1
+for i in range(len(anime_names_list)):
+    print(str(anime_names_index) + " :  " + anime_names_list[i])
+    anime_names_index += 1
 
-sort_orders = sorted(dic.items(), key=lambda x: x[1], reverse=True)
-newsites = [sort_orders[0][0]]
-# print("newsite: ", newsites)
+
+while True:
+    try:
+        anime_number = int(input("Enter the number of the anime you want: "))
+        if anime_number > len(anime_names_list) or anime_number < 1:
+            print("Enter a valid number")
+            continue
+    except ValueError:
+        print(
+            f"Please Enter Numbers, You can select between 1 and {anime_names_index-1}")
+        sleep(1)
+        continue
+    break
+
+
+newsites = [dic[anime_number - 1]]
 allsite = []
 ########## get all the eposide links ##########
 for l in newsites:
@@ -73,12 +96,15 @@ for i in allsite:
         if not i in link_episodes:
             link_episodes.append(i)
 
-print(link_episodes)
+# print(link_episodes)
 
 
 number_of_last_episode = get_episode(link_episodes[-1])
-anime_name = sort_orders[0][0][27:-1].replace("-", " ")
-f = open(f"{search}_anime_file.txt", "w")
+anime_name = anime_names_list[anime_number - 1]
+# replace "/"?"|"\"/"*":"<">"\"
+awedi = anime_name.replace("/", "-").replace("?", "-").replace("|", "-").replace("\\", "-").replace(
+    "\"", "-").replace("\"", "-").replace("*", "-").replace(":", "-").replace("<", "-").replace(">", "-")
+f = open(f"{awedi}_anime_file.txt", "w")
 f.write(
     f"---------- { anime_name } has {number_of_last_episode} episodes   ----------\n")
 
@@ -99,14 +125,15 @@ for l in link_episodes:
         except AttributeError:
             pass
         if not result == None:
-
             f.write(f"{index}: {result} \n")
             linkes.append(result)
             print(index, ": ", result)
             index += 1
+
     f.write("---------------------------------------------------------------------------------------------\n\n")
     print("--------------------------------------------------------------------------------")
 
 
 f.close()
+sleep(2.5)
 print("Finsihed")
