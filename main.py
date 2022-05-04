@@ -100,7 +100,7 @@ episode_number = 0
 for l in link_episodes:
     r = requests.get(l)
     soup = BeautifulSoup(r.content, "html.parser")
-    dom = etree.HTML(str(soup))
+    result = soup.find_all("a", attrs={"data-ep-url": re.compile("^https:")})
 
     index = 1
     episode_number += 1
@@ -108,12 +108,9 @@ for l in link_episodes:
     f.write(f"episode number: {episode_number}/{len(link_episodes)}\n\n")
     print(f"episode number: {episode_number}/{len(link_episodes)}\n")
 
-    while True:
-        try: result = dom.xpath(f'/html/body/div[3]/div[3]/div[1]/div[2]/div/div/div/ul/li[{index}]/a')[0].attrib['data-ep-url'] 
-        except IndexError: break
-        
-        f.write(f"{index}: {result} \n")
-        print(index, ": ", result)
+    for i in result:
+        f.write(f"{index} : {i.get('data-ep-url')}")
+        print(f"{index} : {i.get('data-ep-url')}")        
         index += 1
 
     f.write("---------------------------------------------------------------------------------------------\n\n")
