@@ -110,7 +110,7 @@ for l in link_episodes:
 
     for i in result:
         f.write(f"{index} : {i.get('data-ep-url')}")
-        print(f"{index} : {i.get('data-ep-url')}")        
+        print(f"{index} : {i['data-ep-url']}")        
         index += 1
 
     f.write("---------------------------------------------------------------------------------------------\n\n")
