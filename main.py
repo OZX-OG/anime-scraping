@@ -7,7 +7,7 @@ import requests
 
 while True:
     #### variables ####
-    search = str(input("Enter the name of the anime: "))
+    search = str(input("Enter anime name: "))
     site = f"https://anime4up.art/?search_param=animes&s={search.strip()}"
     allsite = []
     newsites = []
@@ -54,7 +54,7 @@ for i in range(len(anime_names_list)):
 
 while True:
     try:
-        anime_number = int(input("Enter the number of the anime you want: "))
+        anime_number = int(input("Enter the anime number you want: "))
         if anime_number > len(anime_names_list) or anime_number < 1:
             print("Enter a valid number")
             continue
@@ -109,12 +109,11 @@ for l in link_episodes:
     print(f"episode number: {episode_number}/{len(link_episodes)}\n")
 
     for i in result:
-        f.write(f"{index} : {i.get('data-ep-url')}")
-        print(f"{index} : {i['data-ep-url']}")        
+        f.write(f"{index}| [{i.text}] : {i.get('data-ep-url')}\n")   
+        print(f"{index}| [{i.text}] : {i.get('data-ep-url')}")        
         index += 1
 
     f.write("---------------------------------------------------------------------------------------------\n\n")
-    
 f.close()
 print("Done.")
 input("press Enter to exit\n")
