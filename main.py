@@ -1,63 +1,48 @@
 from bs4 import BeautifulSoup
 from lxml import etree
 from time import sleep
+from os import system
 import re
 import requests
 
-search = str(input("Enter the name of the anime: "))
-site = f"https://anime4up.art/?search_param=animes&s={search.strip()}"
-allsite = []
-newsites = []
-linkes = []
+while True:
+    #### variables ####
+    search = str(input("Enter the name of the anime: "))
+    site = f"https://anime4up.art/?search_param=animes&s={search.strip()}"
+    allsite = []
+    newsites = []
+    linkes = []
 
-# get the last episode number
+    ########## get all the links of search ##########
 
 
-def get_episode(episode):
-    r = requests.get(episode)
+    r = requests.get(site)
     soup = BeautifulSoup(r.content, "html.parser")
+    for link in soup.findAll('a', attrs={'href': re.compile("^https:")}):
+        allsite.append(link.get('href'))
 
-    dom = etree.HTML(str(soup))
-    title = dom.xpath('/html/body/div[2]/div/h3')[0].text
-    episode_number = ""
-    print(title)
-    for i in title:
-        if i.isdigit():
-            episode_number += i
-    return episode_number
+    ########## get only animes links ##########
+    for i in allsite:
+        try:
+            if i[:27] == "https://anime4up.art/anime/":
+                if i not in newsites:
+                    newsites.append(i)
+        except IndexError:
+            pass
 
-########## get all the links of search ##########
+    ########## chache the links the anime you want ##########
 
-
-r = requests.get(site)
-soup = BeautifulSoup(r.content, "html.parser")
-for link in soup.findAll('a', attrs={'href': re.compile("^https:")}):
-    allsite.append(link.get('href'))
-
-########## get only animes links ##########
-for i in allsite:
-    try:
-        if i[:27] == "https://anime4up.art/anime/":
-            if i not in newsites:
-                newsites.append(i)
-    except IndexError:
-        pass
-
-
-########## chache the links the anime you want ##########
-
-if len(newsites) == 0:
-    print("No anime found")
-    print("we will exit in 5s")
-    sleep(5)
-    exit()
+    if len(newsites) == 0: print("No anime found"); continue
+    else: break
 
 dic = {}
 anime_names_list = []
+# print(newsites)
 for indx, value in enumerate(newsites):
     # print(value[27:-1].replace("-", " "))
-    x = value[27:-1].replace("-", " ")
-    anime_names_list.append(x)
+    dom = etree.HTML(str(soup))
+    title = dom.xpath(f'/html/body/div[4]/div/div/div[{indx+1}]/div/div[2]/div[2]/h3/a')[0].text 
+    anime_names_list.append(title)
     dic.update({indx: value})
 
 anime_names_index = 1
@@ -73,8 +58,7 @@ while True:
             print("Enter a valid number")
             continue
     except ValueError:
-        print(
-            f"Please Enter Numbers, You can select between 1 and {anime_names_index-1}")
+        print(f"Please Enter Numbers, You can select between 1 and {anime_names_index-1}")
         sleep(1)
         continue
     break
@@ -99,41 +83,40 @@ for i in allsite:
 # print(link_episodes)
 
 
-number_of_last_episode = get_episode(link_episodes[-1])
 anime_name = anime_names_list[anime_number - 1]
 # replace "/"?"|"\"/"*":"<">"\"
 awedi = anime_name.replace("/", "-").replace("?", "-").replace("|", "-").replace("\\", "-").replace(
     "\"", "-").replace("\"", "-").replace("*", "-").replace(":", "-").replace("<", "-").replace(">", "-")
 f = open(f"{awedi}_anime_file.txt", "w")
 f.write(
-    f"---------- { anime_name } has {number_of_last_episode} episodes   ----------\n")
+    f"---------- { anime_name } has {len(link_episodes)} episodes   ----------\n")
 
 
 ########## get the videos link from the episodes ##########
+system("cls")
+episode_number = 0
+
 for l in link_episodes:
     r = requests.get(l)
     soup = BeautifulSoup(r.content, "html.parser")
+    dom = etree.HTML(str(soup))
 
     index = 1
-    episode_number = get_episode(l)
+    episode_number += 1
+    print("--------------------------------------------------------------------------------")
     f.write(f"episode number: {episode_number}/{len(link_episodes)}\n\n")
     print(f"episode number: {episode_number}/{len(link_episodes)}\n")
-    for i in range(50):
-        try:
-            result = soup.findAll('li', attrs={})[
-                i].find('a').get('data-ep-url')
-        except AttributeError:
-            pass
-        if not result == None:
-            f.write(f"{index}: {result} \n")
-            linkes.append(result)
-            print(index, ": ", result)
-            index += 1
+
+    while True:
+        try: result = dom.xpath(f'/html/body/div[3]/div[3]/div[1]/div[2]/div/div/div/ul/li[{index}]/a')[0].attrib['data-ep-url'] 
+        except IndexError: break
+        
+        f.write(f"{index}: {result} \n")
+        print(index, ": ", result)
+        index += 1
 
     f.write("---------------------------------------------------------------------------------------------\n\n")
-    print("--------------------------------------------------------------------------------")
-
-
+    
 f.close()
-sleep(2.5)
 print("Finsihed")
+input("press any key to exit\n")
