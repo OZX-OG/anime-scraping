@@ -30,6 +30,7 @@ while True:
         except IndexError:
             pass
 
+
     ########## chache the links the anime you want ##########
 
     if len(newsites) == 0: print("No anime found"); continue
@@ -118,5 +119,5 @@ for l in link_episodes:
     f.write("---------------------------------------------------------------------------------------------\n\n")
     
 f.close()
-print("Finsihed")
-input("press any key to exit\n")
+print("Done.")
+input("press Enter to exit\n")
